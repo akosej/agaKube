@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 
 	"github.com/akosej/agaKube/kubefunc"
+	"github.com/akosej/agaKube/pfsenseapi"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -54,8 +56,39 @@ func main() {
 			fmt.Println("Comando inválido")
 			os.Exit(1)
 		}
+	case "pf":
+		switch args[1] {
+		case "dhcp":
+			PfSenseDHCPList()
+		default:
+			fmt.Println("Comando inválido")
+			os.Exit(1)
+		}
 	default:
 		fmt.Println("Comando inválido")
 		os.Exit(1)
+	}
+}
+
+func PfSenseDHCPList() {
+	ctx := context.Background()
+	// client := pfsenseapi.NewClientWithLocalAuth(
+	// 	"https://192.168.10.1",
+	// 	"admin",
+	// 	"adminpassword",
+	// )
+	client := pfsenseapi.NewClientWithTokenAuth(
+		"https://192.168.10.1",
+		"id",
+		"token",
+	)
+
+	leases, err := client.DHCP.ListLeases(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, lease := range leases {
+		fmt.Println(lease.Ip)
 	}
 }
